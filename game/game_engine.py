@@ -22,6 +22,9 @@ class GameEngine:
         self.hints_used = 0
         self.ROUND_TIME_MS = 20000
         self.round_start = 0
+        self.DEFAULT_MSG = "Unscramble the letters above!"
+        self.FEEDBACK_MS = 4000
+        self.feedback_time = 0
 
         self.font_title = pygame.font.SysFont(None, 40)
         self.font_word = pygame.font.SysFont(None, 52)
@@ -45,36 +48,34 @@ class GameEngine:
         self.round_start = pygame.time.get_ticks()
         self.input_box.clear()
 
+    def set_feedback(self, msg, color):
+        self.feedback_msg = msg
+        self.feedback_color = color
+        self.feedback_time = pygame.time.get_ticks()
+
     def submit_guess(self):
         guess = self.input_box.text.strip().upper()
         if not guess:
-            self.feedback_msg = "Type a word before submitting!"
-            self.feedback_color = (240, 170, 50)
+            self.set_feedback("Type a word before submitting!", (240, 170, 50))
             return
 
-        # BUG SYMPTON: 
-        # Player's guess is validated against the scrambled text instead of the original solution.
         is_correct = (guess == self.secret_word)
 
         if is_correct:
             self.score += 1
-            self.feedback_msg = f"CORRECT! '{self.secret_word}' is right."
-            self.feedback_color = (80, 230, 110)
+            self.set_feedback(f"CORRECT! '{self.secret_word}' is right.", (80, 230, 110))
             self.next_round()
         else:
-            self.feedback_msg = "WRONG GUESS! Try again."
-            self.feedback_color = (240, 80, 80)
+            self.set_feedback("WRONG GUESS! Try again.", (240, 80, 80))
             self.input_box.clear()
 
     def use_hint(self):
         if self.hints_used >= len(self.secret_word):
-            self.feedback_msg = "All letters already revealed!"
-            self.feedback_color = (240, 170, 50)
+            self.set_feedback("All letters already revealed!", (240, 170, 50))
             return
         self.hints_used += 1
         self.score = max(0, self.score - self.HINT_PENALTY)
-        self.feedback_msg = f"Hint used! -{self.HINT_PENALTY:g} point"
-        self.feedback_color = (240, 170, 50)
+        self.set_feedback(f"Hint used! -{self.HINT_PENALTY:g} point", (240, 170, 50))
 
     def hint_display(self):
         return " ".join(
@@ -101,9 +102,11 @@ class GameEngine:
 
     def update(self):
         if self.time_left_ms() <= 0:
-            self.feedback_msg = f"TIME'S UP! The word was {self.secret_word}."
-            self.feedback_color = (240, 80, 80)
+            self.set_feedback(f"TIME'S UP! The word was {self.secret_word}.", (240, 80, 80))
             self.next_round()
+        elif (self.feedback_msg != self.DEFAULT_MSG
+              and pygame.time.get_ticks() - self.feedback_time > self.FEEDBACK_MS):
+            self.set_feedback(self.DEFAULT_MSG, (210, 215, 225))
 
     def render(self, screen):
         screen.fill((26, 30, 38))
