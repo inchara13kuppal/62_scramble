@@ -1,4 +1,4 @@
-# Word Scramble Repair Lab
+# PES1UG25CS818 - Word Scramble Repair Lab
 
 ## claude link: https://claude.ai/share/207cd5bb-5fc4-4dac-b066-dbaf19b4cead
 
