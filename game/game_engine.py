@@ -20,6 +20,8 @@ class GameEngine:
         self.hint_btn = pygame.Rect(width // 2 + 150, 210, 95, 46)
         self.HINT_PENALTY = 0.5
         self.hints_used = 0
+        self.ROUND_TIME_MS = 20000
+        self.round_start = 0
 
         self.font_title = pygame.font.SysFont(None, 40)
         self.font_word = pygame.font.SysFont(None, 52)
@@ -40,6 +42,7 @@ class GameEngine:
         self.secret_word = random.choice(self.words)
         self.scrambled_word = self.scramble_string(self.secret_word)
         self.hints_used = 0
+        self.round_start = pygame.time.get_ticks()
         self.input_box.clear()
 
     def submit_guess(self):
@@ -92,8 +95,15 @@ class GameEngine:
                 self.use_hint()
                 self.input_box.active = True
 
+    def time_left_ms(self):
+        elapsed = pygame.time.get_ticks() - self.round_start
+        return max(0, self.ROUND_TIME_MS - elapsed)
+
     def update(self):
-        pass
+        if self.time_left_ms() <= 0:
+            self.feedback_msg = f"TIME'S UP! The word was {self.secret_word}."
+            self.feedback_color = (240, 80, 80)
+            self.next_round()
 
     def render(self, screen):
         screen.fill((26, 30, 38))
@@ -126,3 +136,19 @@ class GameEngine:
 
         feedback_surf = self.font_msg.render(self.feedback_msg, True, self.feedback_color)
         screen.blit(feedback_surf, (self.width // 2 - feedback_surf.get_width() // 2, 285))
+                # Countdown timer bar
+        bar_w, bar_h = 400, 16
+        bar_x = self.width // 2 - bar_w // 2
+        bar_y = 330
+        frac = self.time_left_ms() / self.ROUND_TIME_MS
+        if frac > 0.5:
+            bar_color = (80, 230, 110)
+        elif frac > 0.25:
+            bar_color = (240, 190, 60)
+        else:
+            bar_color = (240, 80, 80)
+        pygame.draw.rect(screen, (60, 65, 75), (bar_x, bar_y, bar_w, bar_h), border_radius=8)
+        pygame.draw.rect(screen, bar_color, (bar_x, bar_y, int(bar_w * frac), bar_h), border_radius=8)
+        secs = (self.time_left_ms() + 999) // 1000
+        time_surf = self.font_msg.render(f"{secs}s", True, (210, 215, 225))
+        screen.blit(time_surf, (bar_x + bar_w + 12, bar_y - 1))
