@@ -1,5 +1,7 @@
 # Word Scramble Repair Lab
 
+## claude link: https://claude.ai/share/207cd5bb-5fc4-4dac-b066-dbaf19b4cead
+
 This project is an interactive anagram deduction word puzzle game using **Pygame**. It introduces students to string permutation, randomized list shuffling, uppercase letter sanitization, and text-box widget integration within an object-oriented codebase.
 ---
 
